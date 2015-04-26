@@ -16,8 +16,8 @@ activityTrain <- data.table(read.table(paths[3]))
 dataTrain <- data.table(read.table(paths[2]))
 
 #Rename columns in training dataset
-setnames(subjectsTrain, "V1", "Subject ID")
-setnames(activityTrain, "V1", "Activity")
+setnames(subjectsTrain, "V1", "subjectID")
+setnames(activityTrain, "V1", "activity")
 file <- paste(getwd(), "UCI HAR Dataset/features.txt", sep = "/")
 features <- read.table(file)
 newNames <- as.character(features[ ,2])
@@ -52,3 +52,15 @@ testDT <- select(testRawDT, c(1:8, 43:48, 83:88, 123:128, 163:168, 203:204, 216:
 
 #Merge training and test datasets
 mergedDT <- rbindlist(list(trainDT, testDT), use.names = TRUE)
+
+#Change Activity column class to Factor and add descriptive levels
+mergedDT$"Subject ID" <- factor(mergedDT$"Subject ID")
+mergedDT$Activity <- factor(mergedDT$Activity)
+levels(mergedDT$Activity) <- c("WALKING", "WALKING_UPSTAIRS", "WALKING_DOWNSTAIRS", "SITTING", "STANDING", "LAYING")
+
+#Create Summary Table
+variables <- names(mergedDT)
+variables <- variables[3:length(variables)]
+meltedDT <- melt(mergedDT, id = c("subjectID", "activity"), measure.var = variables)
+variableAVG <- dcast(meltedDT, subjectID+activity ~ variable, mean, drop = TRUE)
+
